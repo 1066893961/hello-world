@@ -1,0 +1,166 @@
+<template>
+  <div id="app">
+    <div class="todo-container">
+      <div class="todo-wrap">
+        <MyHeader @addTodo="addTodo" />
+        <MyList :todos="todos" />
+        <MyFooter
+          :todos="todos"
+          @checkAllTodo="checkAllTodo"
+          @clearAllTodo="clearAllTodo"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import pubsub from "pubsub-js"
+import MyHeader from "@/components/MyHeader";
+import MyFooter from "@/components/MyFooter";
+import MyList from "@/components/MyList";
+
+export default {
+  name: "App",
+  components: {
+    MyHeader,
+    MyFooter,
+    MyList,
+  },
+  data() {
+    return {
+      // todos: [
+      //   { id: "001", title: "抽烟", done: true },
+      //   { id: "002", title: "喝酒", done: false },
+      //   { id: "003", title: "开车", done: true },
+      // ],
+      todos: JSON.parse(localStorage.getItem("todos")) || [],
+    };
+  },
+
+  methods: {
+    //添加一个todo
+    addTodo(todoObj) {
+      console.log("我是app组件， 我收到了x==:", todoObj);
+      this.todos.unshift(todoObj);
+    },
+    //勾选或者取消勾选一个todo
+    checkTodo(id) {
+      this.todos.forEach((element) => {
+        if (element.id === id) {
+          element.done = !element.done;
+        }
+      });
+    },
+
+    //更新一个todo 编辑完成更新
+    updateTodo(id, title){
+        this.todos.forEach((todo) => {
+          if(todo.id === id){
+            todo.title = title
+          }
+        })
+    },
+    //删除一个todo
+    deleteTodo(_, id) {
+      this.todos = this.todos.filter((todo) => {
+        return todo.id !== id;
+      });
+    },
+    //全选  取消全选
+    checkAllTodo(done) {
+      this.todos.forEach((todo) => {
+        todo.done = done;
+      });
+    },
+    //清楚所有已完成的todo
+    clearAllTodo() {
+      //!!!注意filer不影响原数组 所以要重新赋值
+      this.todos = this.todos.filter((todo) => {
+        return !todo.done;
+      });
+    },
+  },
+  watch: {
+    todos: {
+      handler(value) {
+        localStorage.setItem("todos", JSON.stringify(value));
+      },
+    },
+  },
+  mounted() {
+    this.$bus.$on("check",this.checkTodo)
+    this.$bus.$on('updateTodo', this.updateTodo)
+    // this.$bus.$on("delete",this.deleteTodo)
+    //订阅消息实现
+    this.pubId = pubsub.subscribe('delete', this.deleteTodo)
+    // this.$bus.$on("check", (id) => {
+    //   this.checkTodo(id);
+    // });
+    // this.$bus.$on("delete", (id) => {
+    //   this.deleteTodo(id);
+    // });
+  },
+  beforeDestroy() {
+    this.$bus.$off("check");
+    this.$bus.$off("updateTodo");
+    // this.$bus.$off("delete");
+    pubsub.unsubscribe(this.pubId)
+  },
+};
+</script> 
+
+<style>
+/* base */
+body {
+  background: #fff;
+}
+
+.btn {
+  display: inline-block;
+  padding: 4px 12px;
+  margin-left: 10px;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.btn-danger {
+  color: #fff;
+  background-color: #da4f49;
+  border: 1px solid #bd362f;
+}
+
+.btn-edit {
+  color: #fff;
+  background-color: #7a6766;
+  border: 1px solid #5f5554;
+}
+
+.btn-danger:hover {
+  color: #fff;
+  background-color: #bd362f;
+}
+.btn-focus {
+  outline: none;
+}
+
+.todo-container {
+  width: 600px;
+  margin: 0 auto;
+}
+
+.todo-container .todo-wrap {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+/* header */
+</style>

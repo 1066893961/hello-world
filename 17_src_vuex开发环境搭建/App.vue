@@ -1,19 +1,15 @@
 <template>
-  <div>
-    <Count />
-    <hr />
-    <Person />
+  <div class="container">
+    <Count/>
   </div>
 </template>
 
 <script>
 import Count from "@/components/Count";
-import Person from "@/components/Person";
 export default {
   name: "App",
   components: {
     Count,
-    Person,
   },
 };
 </script>
@@ -23,7 +19,7 @@ export default {
 .foot {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap; /* 默认不换行 */
+  flex-wrap: nowrap; /* 默认不换行 */
   justify-content: space-around;
 }
 h4 {
